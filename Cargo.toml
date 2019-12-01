@@ -1,0 +1,11 @@
+[package]
+name = "advent_of_code_2019"
+version = "0.1.0"
+authors = ["Jakob Lindqvist <jakob.lindqvist.92@gmail.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+csv = "1"
+serde = "1"
