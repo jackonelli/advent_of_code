@@ -149,25 +149,31 @@ impl Path {
     }
     fn from_path_string(path: &str) -> Self {
         let steps = path.split(',').map(|x| Step::from_string(x));
-        let mut current_position = ORIGIN.clone();
         let mut path = Path::empty();
-        for step in steps {
-            add_line_and_translate_position(step, &mut current_position, &mut path);
-        }
+        steps.fold(ORIGIN.clone(), |current_position, step| {
+            add_line_and_translate_position(step, &current_position, &mut path)
+        });
         path
     }
 }
 
-fn add_line_and_translate_position(step: Step, current_position: &mut Coordinate, path: &mut Path) {
-    match step {
+fn add_line_and_translate_position(
+    step: Step,
+    current_position: &Coordinate,
+    path: &mut Path,
+) -> Coordinate {
+    let new_position = match step {
         Step::Up(step_size) => {
             let line = VerticalLine {
                 x: current_position.x,
                 min_y: current_position.y,
                 max_y: current_position.y + step_size,
             };
-            current_position.y += step_size;
             path.verticals.push(line);
+            Coordinate {
+                x: current_position.x,
+                y: current_position.y + step_size,
+            }
         }
         Step::Down(step_size) => {
             let line = VerticalLine {
@@ -175,8 +181,11 @@ fn add_line_and_translate_position(step: Step, current_position: &mut Coordinate
                 min_y: current_position.y - step_size,
                 max_y: current_position.y,
             };
-            current_position.y -= step_size;
             path.verticals.push(line);
+            Coordinate {
+                x: current_position.x,
+                y: current_position.y - step_size,
+            }
         }
         Step::Left(step_size) => {
             let line = HorizontalLine {
@@ -184,8 +193,11 @@ fn add_line_and_translate_position(step: Step, current_position: &mut Coordinate
                 min_x: current_position.x - step_size,
                 max_x: current_position.x,
             };
-            current_position.x -= step_size;
             path.horizontals.push(line);
+            Coordinate {
+                x: current_position.x - step_size,
+                y: current_position.y,
+            }
         }
         Step::Right(step_size) => {
             let line = HorizontalLine {
@@ -193,11 +205,15 @@ fn add_line_and_translate_position(step: Step, current_position: &mut Coordinate
                 min_x: current_position.x,
                 max_x: current_position.x + step_size,
             };
-            current_position.x += step_size;
             path.horizontals.push(line);
+            Coordinate {
+                x: current_position.x + step_size,
+                y: current_position.y,
+            }
         }
-    }
+    };
     path.step_seq.push(step);
+    new_position
 }
 
 fn find_intersections(path_1: &Path, path_2: &Path) -> Vec<Coordinate> {
