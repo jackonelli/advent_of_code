@@ -17,13 +17,13 @@ impl Opcode {
     fn from_sequence(seq: &[u32]) -> Self {
         match seq[0] {
             1 => Opcode::Sum(Registers {
-                input_1: seq[1],
-                input_2: seq[2],
+                noun: seq[1],
+                verb: seq[2],
                 output: seq[3],
             }),
             2 => Opcode::Multiply(Registers {
-                input_1: seq[1],
-                input_2: seq[2],
+                noun: seq[1],
+                verb: seq[2],
                 output: seq[3],
             }),
             99 => Opcode::Stop,
@@ -34,14 +34,14 @@ impl Opcode {
 
 #[derive(Debug)]
 struct Registers {
-    input_1: u32,
-    input_2: u32,
+    noun: u32,
+    verb: u32,
     output: u32,
 }
 
-fn preprocess_intcode(mut code: Vec<u32>, input_1: u32, input_2: u32) -> Vec<u32> {
-    code[1] = input_1;
-    code[2] = input_2;
+fn preprocess_intcode(mut code: Vec<u32>, noun: u32, verb: u32) -> Vec<u32> {
+    code[1] = noun;
+    code[2] = verb;
     code
 }
 
@@ -49,19 +49,11 @@ fn parse_intcode(mut code: Vec<u32>) -> Vec<u32> {
     for index in (0..code.len() - 4).step_by(4) {
         let operation = Opcode::from_sequence(&code[index..(index + 4)]);
         match operation {
-            Opcode::Sum(Registers {
-                input_1,
-                input_2,
-                output,
-            }) => {
-                code[output as usize] = code[input_1 as usize] + code[input_2 as usize];
+            Opcode::Sum(Registers { noun, verb, output }) => {
+                code[output as usize] = code[noun as usize] + code[verb as usize];
             }
-            Opcode::Multiply(Registers {
-                input_1,
-                input_2,
-                output,
-            }) => {
-                code[output as usize] = code[input_1 as usize] * code[input_2 as usize];
+            Opcode::Multiply(Registers { noun, verb, output }) => {
+                code[output as usize] = code[noun as usize] * code[verb as usize];
             }
             _ => return code,
         }
@@ -70,13 +62,13 @@ fn parse_intcode(mut code: Vec<u32>) -> Vec<u32> {
 }
 
 fn brute_force(intcode: Vec<u32>, output: u32) -> (u32, u32) {
-    for input_1 in (0..100).rev() {
-        for input_2 in (0..100).rev() {
+    for noun in (0..100).rev() {
+        for verb in (0..100).rev() {
             let new_intcode = intcode.clone();
-            let preprocessed = preprocess_intcode(new_intcode, input_1, input_2);
+            let preprocessed = preprocess_intcode(new_intcode, noun, verb);
             let code = parse_intcode(preprocessed);
             if code[0] == output {
-                return (input_1, input_2);
+                return (noun, verb);
             }
         }
     }
@@ -85,9 +77,9 @@ fn brute_force(intcode: Vec<u32>, output: u32) -> (u32, u32) {
 
 fn star_1() {
     let intcode: Vec<u32> = INTCODE.iter().cloned().collect();
-    let input_1 = 12;
-    let input_2 = 2;
-    let preprocessed = preprocess_intcode(intcode, input_1, input_2);
+    let noun = 12;
+    let verb = 2;
+    let preprocessed = preprocess_intcode(intcode, noun, verb);
     let code = parse_intcode(preprocessed);
     println!("First element in parsed code: {}", code[0]);
 }
@@ -95,8 +87,8 @@ fn star_1() {
 fn star_2() {
     const OUTPUT: u32 = 19_690_720;
     let intcode: Vec<u32> = INTCODE.iter().cloned().collect();
-    let (input_1, input_2) = brute_force(intcode, OUTPUT);
-    println!("Input 1: {}, Input 2: {}", input_1, input_2);
+    let (noun, verb) = brute_force(intcode, OUTPUT);
+    println!("Input 1: {}, Input 2: {}", noun, verb);
 }
 
 fn main() {
@@ -110,10 +102,10 @@ mod tests_2 {
     #[test]
     fn test_preprocess() {
         let intcode = vec![1, 0, 0, 0, 99];
-        let input_1 = 12;
-        let input_2 = 2;
+        let noun = 12;
+        let verb = 2;
         let true_result_code = vec![1, 12, 2, 0, 99];
-        let preprocessed_code = preprocess_intcode(intcode, input_1, input_2);
+        let preprocessed_code = preprocess_intcode(intcode, noun, verb);
         assert_eq!(true_result_code, preprocessed_code);
     }
 
