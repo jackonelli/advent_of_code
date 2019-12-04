@@ -122,7 +122,7 @@ fn main() {
         END - START,
         checked as f32 / (END - START) as f32
     );
-    let range = START..END;
+    let range = START..=END;
     let validators: &[&dyn Fn(&[u8]) -> bool] = &[&monotonic, &two_consequtive];
     let valid_passwords = range.filter(|x| validate_password(*x, validators));
     println!(
