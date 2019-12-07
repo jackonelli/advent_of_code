@@ -315,7 +315,7 @@ fn update_code(
             code[pointer as usize] = input;
             (address + 2, None)
         }
-        Operation::Output(ShortRegister(pointer)) => (address + 2, Some(0)),
+        Operation::Output(ShortRegister(pointer)) => (address + 2, Some(code[pointer as usize])),
         Operation::JumpIfTrue(LongRegisters { noun, verb, output }) => {
             if noun != 0 {
                 (verb as usize, None)
