@@ -1,6 +1,7 @@
 use env_logger;
 use log::{debug, info};
-use std::collections::{BTreeMap, HashSet};
+use std::cmp;
+use std::collections::{BTreeMap, BinaryHeap, HashSet};
 use std::f32::consts::PI;
 use std::fs::File;
 use std::io::prelude::*;
@@ -16,13 +17,14 @@ impl Asteroid {
         Asteroid { x, y }
     }
 
-    fn default() -> Self {
+    fn placeholder() -> Self {
         Asteroid { x: -1, y: -1 }
     }
 
     fn dist_and_angle_to(&self, other: &Asteroid) -> (f32, f32) {
         let delta_x = other.x - self.x;
-        let delta_y = other.y - self.y;
+        // Invert height since they use dumb coord syst.
+        let delta_y = -(other.y - self.y);
         let dist = ((delta_x as f32).powi(2) + (delta_y as f32).powi(2)).sqrt();
         let angle = (delta_y as f32 / dist).asin();
         // Project angle to correct half-plane.
@@ -51,6 +53,33 @@ fn parse_asteroids(contents: &str) -> Vec<Asteroid> {
     asteroids
 }
 
+struct AsteroidDist {
+    asteroid: Asteroid,
+    dist: f32,
+}
+
+impl PartialEq for AsteroidDist {
+    fn eq(&self, other: &Self) -> bool {
+        self.dist == other.dist
+    }
+}
+
+impl Eq for AsteroidDist {}
+
+impl cmp::PartialOrd for AsteroidDist {
+    fn partial_cmp(&self, other: &Self) -> Option<cmp::Ordering> {
+        self.dist.partial_cmp(&other.dist)
+    }
+}
+
+impl cmp::Ord for AsteroidDist {
+    fn cmp(&self, other: &Self) -> cmp::Ordering {
+        self.dist
+            .partial_cmp(&other.dist)
+            .expect("Could not order distance")
+    }
+}
+
 fn find_number_of_visible(current: &Asteroid, asteroids: &[Asteroid]) -> usize {
     let mut unique_angles = HashSet::new();
     for other in asteroids {
@@ -69,7 +98,7 @@ fn find_number_of_visible(current: &Asteroid, asteroids: &[Asteroid]) -> usize {
 }
 
 fn find_most_visible(asteroids: &[Asteroid]) -> (usize, Asteroid) {
-    let mut most_visible = Asteroid::default();
+    let mut most_visible = Asteroid::placeholder();
     let mut count = 0;
     for current in asteroids {
         let current_count = find_number_of_visible(current, asteroids);
@@ -85,52 +114,43 @@ fn find_most_visible(asteroids: &[Asteroid]) -> (usize, Asteroid) {
 fn get_sorted_map_of_angle_dist(
     station: &Asteroid,
     asteroids: &[Asteroid],
-) -> BTreeMap<i32, Vec<(Asteroid, f32)>> {
-    let mut dist_and_angle: BTreeMap<i32, Vec<(Asteroid, f32)>> = BTreeMap::new();
-    for asteroid in asteroids {
-        if asteroid == station {
-            continue;
-        };
-        let (dist, angle) = station.dist_and_angle_to(asteroid);
-        let hash = hash_angle(angle);
-        let entry = dist_and_angle.entry(hash).or_insert(Vec::new());
-        entry.push((asteroid.clone(), dist));
-    }
-
-    for (_, dist_vec) in dist_and_angle.iter_mut() {
-        dist_vec.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal));
-    }
-
-    for (angle, dist_vec) in &dist_and_angle {
-        debug!("{}: {:?}", *angle as f32 * 0.18 / PI, dist_vec);
-    }
+) -> BTreeMap<i32, BinaryHeap<AsteroidDist>> {
+    let dist_and_angle: BTreeMap<i32, BinaryHeap<AsteroidDist>> = asteroids
+        .iter()
+        .filter(|asteroid| *asteroid != station)
+        .fold(BTreeMap::new(), |mut map, asteroid| {
+            let (dist, angle) = station.dist_and_angle_to(asteroid);
+            let hash = hash_angle(angle);
+            let entry = map.entry(hash).or_insert(BinaryHeap::new());
+            entry.push(AsteroidDist {
+                asteroid: asteroid.clone(),
+                dist,
+            });
+            map
+        });
     dist_and_angle
 }
 
 fn find_nth_blasted(station: &Asteroid, asteroids: &[Asteroid], number: usize) -> Asteroid {
     let mut angle_dist = get_sorted_map_of_angle_dist(station, asteroids);
-    let mut counter = 1;
-    let mut nth = Asteroid::default();
-    while counter < number {
-        for (_, dist_vec) in angle_dist.iter_mut() {
-            if let Some(asteroid) = dist_vec.pop() {
-                debug!(
-                    "Blasting nr {}: ({}, {})",
-                    counter, asteroid.0.x, asteroid.0.y
-                );
-                nth = asteroid.0;
-            };
-            if counter == number {
-                break;
-            }
+    let mut counter = 0;
+    while !angle_dist.is_empty() {
+        for (_, distances) in angle_dist.iter_mut() {
+            let zapped_asteroid = distances.pop().expect("Empty despite filter");
             counter += 1;
+            if (counter) == number {
+                return zapped_asteroid.asteroid;
+            }
         }
+        angle_dist = angle_dist
+            .into_iter()
+            .filter(|(_, distances)| !distances.is_empty())
+            .collect()
     }
-    nth
+    panic!("Could not zap {} asteroids, found only {}", number, counter);
 }
 
-fn main() {
-    env_logger::init();
+fn star_1() {
     let file = "input/10/input";
     let mut file = File::open(file).expect("Opening file error");
     let mut contents = String::new();
@@ -140,9 +160,25 @@ fn main() {
     let asteroids = parse_asteroids(&contents);
     let (count, asteroid) = find_most_visible(&asteroids);
     println!("Visible: {}, {:?}", count, asteroid);
+}
+
+fn star_2() {
+    let file = "input/10/input";
+    let mut file = File::open(file).expect("Opening file error");
+    let mut contents = String::new();
+    file.read_to_string(&mut contents)
+        .expect("Read to string error");
+    info!("\n{}", contents);
+    let asteroids = parse_asteroids(&contents);
     let station = Asteroid::new(11, 11);
     let nth = find_nth_blasted(&station, &asteroids, 200);
-    println!("{:?}", nth);
+    println!("Last zipped {:?}", nth);
+}
+
+fn main() {
+    env_logger::init();
+    star_1();
+    star_2();
 }
 
 #[cfg(test)]
