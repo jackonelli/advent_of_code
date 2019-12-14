@@ -129,73 +129,63 @@ fn star_2() {
     let callisto: Moon = Moon::new(1, 9, -13);
     let mut moons = vec![io, europa, ganymede, callisto];
     let initial_state = moons.clone();
-    let mut pos_periods = vec![0, 0, 0];
-    let mut vel_periods = vec![0, 0, 0];
+    let mut periods = vec![0, 0, 0];
     let mut count: u64 = 0;
-    let mut period = 0;
     // EPA do-while!!!
-    let moon_index = 1;
-    while {
+    while periods.iter().any(|period| *period == 0) {
         moons = one_timestep(moons);
         count += 1;
-        period += 1;
 
-        if moons[0].pos.x == initial_state[0].pos.x
-            && moons[1].pos.x == initial_state[1].pos.x
-            && moons[2].pos.x == initial_state[2].pos.x
-            && moons[3].pos.x == initial_state[3].pos.x
-            && pos_periods[0] == 0
+        if moons
+            .iter()
+            .zip(initial_state.iter())
+            .all(|(current, init)| current.pos.x == init.pos.x && current.vel.x == init.vel.x)
+            && periods[0] == 0
         {
-            pos_periods[0] = count;
+            periods[0] = count;
         }
-        if moons[0].pos.y == initial_state[0].pos.y
-            && moons[1].pos.y == initial_state[1].pos.y
-            && moons[2].pos.y == initial_state[2].pos.y
-            && moons[3].pos.y == initial_state[3].pos.y
-            && pos_periods[1] == 0
+        if moons
+            .iter()
+            .zip(initial_state.iter())
+            .all(|(current, init)| current.pos.y == init.pos.y && current.vel.y == init.vel.y)
+            && periods[1] == 0
         {
-            pos_periods[1] = count;
+            periods[1] = count;
         }
-        if moons[0].pos.z == initial_state[0].pos.z
-            && moons[1].pos.z == initial_state[1].pos.z
-            && moons[2].pos.z == initial_state[2].pos.z
-            && moons[3].pos.z == initial_state[3].pos.z
-            && pos_periods[2] == 0
+        if moons
+            .iter()
+            .zip(initial_state.iter())
+            .all(|(current, init)| current.pos.z == init.pos.z && current.vel.z == init.vel.z)
+            && periods[2] == 0
         {
-            pos_periods[2] = count;
+            periods[2] = count;
         }
+    }
+    println!("Repeats after: {:?}", least_common_multiple_n(&periods));
+}
 
-        if moons[0].vel.x == initial_state[0].vel.x
-            && moons[1].vel.x == initial_state[1].vel.x
-            && moons[2].vel.x == initial_state[2].vel.x
-            && moons[3].vel.x == initial_state[3].vel.x
-            && vel_periods[0] == 0
-        {
-            vel_periods[0] = count;
-        }
-        if moons[0].vel.y == initial_state[0].vel.y
-            && moons[1].vel.y == initial_state[1].vel.y
-            && moons[2].vel.y == initial_state[2].vel.y
-            && moons[3].vel.y == initial_state[3].vel.y
-            && vel_periods[1] == 0
-        {
-            vel_periods[1] = count;
-        }
-        if moons[0].vel.z == initial_state[0].vel.z
-            && moons[1].vel.z == initial_state[1].vel.z
-            && moons[2].vel.z == initial_state[2].vel.z
-            && moons[3].vel.z == initial_state[3].vel.z
-            && vel_periods[2] == 0
-        {
-            vel_periods[2] = count;
-        }
-        //for moon in moons.iter().zip(initial_state).enumerate() {
-        //    if moon.pos.x == iniatial_state
-        //}
-        count < 1000_000
-    } {}
-    println!("Position periods: {:?}", pos_periods);
-    println!("Velocity periods: {:?}", vel_periods);
+fn least_common_multiple_n(numbers: &[u64]) -> u64 {
+    let mut lcm = least_common_multiple(numbers[0], numbers[1]);
+    for number in numbers.into_iter().skip(2) {
+        lcm = least_common_multiple(lcm, *number);
+    }
+    lcm
+}
+
+fn least_common_multiple(num_1: u64, num_2: u64) -> u64 {
+    let (mut numerator, mut denominator) = if num_1 > num_2 {
+        (num_1, num_2)
+    } else {
+        (num_2, num_1)
+    };
+    let mut remainder = numerator % denominator;
+    while remainder != 0 {
+        numerator = denominator;
+        denominator = remainder;
+        remainder = numerator % denominator;
+    }
+    let greatest_common_divisor = denominator;
+    num_1 * num_2 / greatest_common_divisor
 }
 
 fn main() {
@@ -254,5 +244,15 @@ mod tests_12 {
                 .any(|pair| pair.0 != pair.1)
         } {}
         assert_eq!(count, 2772);
+    }
+    #[test]
+    fn test_lcm() {
+        let numbers = vec![161428, 113028, 231614];
+        assert_eq!(528250271633772, least_common_multiple_n(&numbers));
+    }
+    #[test]
+    fn test_putnik() {
+        let numbers = vec![231613, 96235, 193051];
+        assert_eq!(4302967224744805, least_common_multiple_n(&numbers));
     }
 }
