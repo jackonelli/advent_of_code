@@ -129,25 +129,78 @@ fn star_2() {
     let callisto: Moon = Moon::new(1, 9, -13);
     let mut moons = vec![io, europa, ganymede, callisto];
     let initial_state = moons.clone();
+    let mut pos_periods = vec![0, 0, 0];
+    let mut vel_periods = vec![0, 0, 0];
     let mut count: u64 = 0;
+    let mut period = 0;
     // EPA do-while!!!
+    let moon_index = 1;
     while {
         moons = one_timestep(moons);
         count += 1;
-        if count % 1_000_000 == 0 {
-            println!("Iter: {}", count);
+        period += 1;
+
+        if moons[0].pos.x == initial_state[0].pos.x
+            && moons[1].pos.x == initial_state[1].pos.x
+            && moons[2].pos.x == initial_state[2].pos.x
+            && moons[3].pos.x == initial_state[3].pos.x
+            && pos_periods[0] == 0
+        {
+            pos_periods[0] = count;
         }
-        moons
-            .iter()
-            .zip(initial_state.iter())
-            .any(|pair| pair.0 != pair.1)
+        if moons[0].pos.y == initial_state[0].pos.y
+            && moons[1].pos.y == initial_state[1].pos.y
+            && moons[2].pos.y == initial_state[2].pos.y
+            && moons[3].pos.y == initial_state[3].pos.y
+            && pos_periods[1] == 0
+        {
+            pos_periods[1] = count;
+        }
+        if moons[0].pos.z == initial_state[0].pos.z
+            && moons[1].pos.z == initial_state[1].pos.z
+            && moons[2].pos.z == initial_state[2].pos.z
+            && moons[3].pos.z == initial_state[3].pos.z
+            && pos_periods[2] == 0
+        {
+            pos_periods[2] = count;
+        }
+
+        if moons[0].vel.x == initial_state[0].vel.x
+            && moons[1].vel.x == initial_state[1].vel.x
+            && moons[2].vel.x == initial_state[2].vel.x
+            && moons[3].vel.x == initial_state[3].vel.x
+            && vel_periods[0] == 0
+        {
+            vel_periods[0] = count;
+        }
+        if moons[0].vel.y == initial_state[0].vel.y
+            && moons[1].vel.y == initial_state[1].vel.y
+            && moons[2].vel.y == initial_state[2].vel.y
+            && moons[3].vel.y == initial_state[3].vel.y
+            && vel_periods[1] == 0
+        {
+            vel_periods[1] = count;
+        }
+        if moons[0].vel.z == initial_state[0].vel.z
+            && moons[1].vel.z == initial_state[1].vel.z
+            && moons[2].vel.z == initial_state[2].vel.z
+            && moons[3].vel.z == initial_state[3].vel.z
+            && vel_periods[2] == 0
+        {
+            vel_periods[2] = count;
+        }
+        //for moon in moons.iter().zip(initial_state).enumerate() {
+        //    if moon.pos.x == iniatial_state
+        //}
+        count < 1000_000
     } {}
-    println!("{}", count);
+    println!("Position periods: {:?}", pos_periods);
+    println!("Velocity periods: {:?}", vel_periods);
 }
 
 fn main() {
     env_logger::init();
-    star_1();
+    // star_1();
     star_2();
 }
 
