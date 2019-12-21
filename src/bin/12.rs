@@ -129,25 +129,68 @@ fn star_2() {
     let callisto: Moon = Moon::new(1, 9, -13);
     let mut moons = vec![io, europa, ganymede, callisto];
     let initial_state = moons.clone();
+    let mut periods = vec![0, 0, 0];
     let mut count: u64 = 0;
     // EPA do-while!!!
-    while {
+    while periods.iter().any(|period| *period == 0) {
         moons = one_timestep(moons);
         count += 1;
-        if count % 1_000_000 == 0 {
-            println!("Iter: {}", count);
-        }
-        moons
+
+        if moons
             .iter()
             .zip(initial_state.iter())
-            .any(|pair| pair.0 != pair.1)
-    } {}
-    println!("{}", count);
+            .all(|(current, init)| current.pos.x == init.pos.x && current.vel.x == init.vel.x)
+            && periods[0] == 0
+        {
+            periods[0] = count;
+        }
+        if moons
+            .iter()
+            .zip(initial_state.iter())
+            .all(|(current, init)| current.pos.y == init.pos.y && current.vel.y == init.vel.y)
+            && periods[1] == 0
+        {
+            periods[1] = count;
+        }
+        if moons
+            .iter()
+            .zip(initial_state.iter())
+            .all(|(current, init)| current.pos.z == init.pos.z && current.vel.z == init.vel.z)
+            && periods[2] == 0
+        {
+            periods[2] = count;
+        }
+    }
+    println!("Repeats after: {:?}", least_common_multiple_n(&periods));
+}
+
+fn least_common_multiple_n(numbers: &[u64]) -> u64 {
+    let mut lcm = least_common_multiple(numbers[0], numbers[1]);
+    for number in numbers.into_iter().skip(2) {
+        lcm = least_common_multiple(lcm, *number);
+    }
+    lcm
+}
+
+fn least_common_multiple(num_1: u64, num_2: u64) -> u64 {
+    let (mut numerator, mut denominator) = if num_1 > num_2 {
+        (num_1, num_2)
+    } else {
+        (num_2, num_1)
+    };
+    let mut remainder = numerator % denominator;
+    while remainder != 0 {
+        numerator = denominator;
+        denominator = remainder;
+        remainder = numerator % denominator;
+    }
+    let greatest_common_divisor = denominator;
+    num_1 * num_2 / greatest_common_divisor
 }
 
 fn main() {
     env_logger::init();
-    star_1();
+    // star_1();
     star_2();
 }
 
@@ -201,5 +244,15 @@ mod tests_12 {
                 .any(|pair| pair.0 != pair.1)
         } {}
         assert_eq!(count, 2772);
+    }
+    #[test]
+    fn test_lcm() {
+        let numbers = vec![161428, 113028, 231614];
+        assert_eq!(528250271633772, least_common_multiple_n(&numbers));
+    }
+    #[test]
+    fn test_putnik() {
+        let numbers = vec![231613, 96235, 193051];
+        assert_eq!(4302967224744805, least_common_multiple_n(&numbers));
     }
 }
