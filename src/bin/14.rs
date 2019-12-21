@@ -153,7 +153,7 @@ mod tests_14 {
         let mut totals = VecDeque::new();
         totals.push_back((FUEL.into(), 1));
         let extra = HashMap::new();
-        let (mut totals, _) = get_total(totals, extra, &reactions);
+        let mut totals = get_total(totals, extra, &reactions);
         assert_eq!(totals.pop_front().unwrap().1, 31);
     }
     #[test]
@@ -167,7 +167,7 @@ mod tests_14 {
         let mut totals = VecDeque::new();
         totals.push_back((FUEL.into(), 1));
         let extra = HashMap::new();
-        let (mut totals, _) = get_total(totals, extra, &reactions);
+        let mut totals = get_total(totals, extra, &reactions);
         assert_eq!(totals.pop_front().unwrap().1, 165);
     }
     #[test]
@@ -181,7 +181,7 @@ mod tests_14 {
         let mut totals = VecDeque::new();
         totals.push_back((FUEL.into(), 1));
         let extra = HashMap::new();
-        let (mut totals, _) = get_total(totals, extra, &reactions);
+        let mut totals = get_total(totals, extra, &reactions);
         assert_eq!(totals.pop_front().unwrap().1, 13312);
     }
 }
