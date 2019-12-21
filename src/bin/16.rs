@@ -99,7 +99,6 @@ fn main() {
     env_logger::init();
     star_1();
     star_2();
-    let aba = vec![1, 2, 4, 5, 6];
 }
 
 #[cfg(test)]
