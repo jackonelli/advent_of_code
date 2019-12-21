@@ -37,7 +37,8 @@ fn convolve(input: &[i32], pattern: &[i32]) -> i32 {
         .cycle()
         .skip(1)
         .zip(input.iter())
-        .fold(0, |acc, (x, y)| acc + x * y)
+        .map(|(x, y)| x * y)
+        .sum()
 }
 
 fn positive_single_digit(number: i32) -> i32 {
@@ -53,17 +54,52 @@ fn gen_new_phase(old_phase: &[i32]) -> Vec<i32> {
     })
 }
 
-fn main() {
+fn gen_new_phase_1(old_phase: &[i32]) -> Vec<i32> {
+    let mut cum_sum = Vec::new();
+    let mut acc = 0;
+    for x in old_phase.iter().rev() {
+        acc += x;
+        cum_sum.push(positive_single_digit(acc));
+    }
+    cum_sum.into_iter().rev().collect()
+}
+
+fn star_1() {
     // Correct 58100105
-    env_logger::init();
     let input = input_to_array("input/16/input");
     let num_phases = 100;
     let phase = input;
     let end_phase = (0..num_phases).fold(phase, |acc, iter| {
-        println!("---- {} -----", iter);
+        println!("---- {} -----", iter + 1);
         gen_new_phase(&acc)
     });
     println!("{}", first_nth_as_int(&end_phase, 8));
+}
+
+fn star_2() {
+    // Correct 41781287
+    let input = input_to_array("input/16/input");
+    let skip_number = first_nth_as_int(&input, 7) as usize;
+    let repeat_input: Vec<i32> = input
+        .into_iter()
+        .cycle()
+        .skip(skip_number)
+        .take(10_000 * 650 - skip_number)
+        .collect();
+    let num_phases = 100;
+    let phase = repeat_input;
+    let end_phase = (0..num_phases).fold(phase, |acc, iter| {
+        println!("---- {} -----", iter + 1);
+        gen_new_phase_1(&acc)
+    });
+    println!("{}", first_nth_as_int(&end_phase, 8));
+}
+
+fn main() {
+    env_logger::init();
+    star_1();
+    star_2();
+    let aba = vec![1, 2, 4, 5, 6];
 }
 
 #[cfg(test)]

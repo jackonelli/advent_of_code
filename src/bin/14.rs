@@ -109,20 +109,24 @@ fn star_2() {
     let ore_count: u64 = 1000_000_000_000;
     let mut upper = 5000000;
     let mut lower = 4000000;
-    loop {
+    let mut prev_current = 0;
+    let mut current = 1;
+    let mut ore_needed = 0;
+    while prev_current != current {
+        prev_current = current;
+        current = (upper + lower) / 2;
         let mut totals = VecDeque::new();
-        let current = (upper + lower) / 2;
         totals.push_back((FUEL.into(), current));
         let extra = HashMap::new();
         let totals = get_total(totals.clone(), extra, &reactions);
-        let ore_needed = totals.clone().pop_front().unwrap().1 as u64;
+        ore_needed = totals.clone().pop_front().unwrap().1 as u64;
         if ore_needed > ore_count {
             upper = current;
         } else {
             lower = current;
         }
-        println!("Ore needed: {}, Fuel: {}", ore_needed, current);
     }
+    println!("Ore needed: {}, Fuel: {}", ore_needed, current);
 }
 
 fn star_1() {
