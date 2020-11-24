@@ -1,4 +1,4 @@
-use advent_of_code_2019::read_csv;
+use aoc_2019::read_csv;
 
 fn calculate_fuel(weight: i32) -> i32 {
     let quotient = weight as f32 / 3.0;
