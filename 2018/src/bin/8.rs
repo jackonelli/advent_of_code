@@ -4,7 +4,7 @@ use std::io::prelude::*;
 #[derive(Debug)]
 struct Tree {
     meta_data: Vec<usize>,
-    sub_trees: Vec<Box<Tree>>,
+    sub_trees: Vec<Tree>,
 }
 
 impl Tree {
@@ -13,14 +13,11 @@ impl Tree {
         let num_children = lic[idx];
         let num_metadata = lic[idx + 1];
         idx += 2;
-        println!("{}: {}, {}", idx - 2, num_children, num_metadata);
-        let mut sub_trees: Vec<Box<Tree>> = Vec::new();
+        let mut sub_trees: Vec<Tree> = Vec::new();
         for _ in 0..num_children {
-            println!("Idx in loop: {}", idx);
             let (tmp, sub_tree) = Tree::from_lic(idx, lic);
-            println!("Next idx in loop: {}", tmp);
             idx = tmp;
-            sub_trees.push(Box::new(sub_tree));
+            sub_trees.push(sub_tree);
         }
         let end_meta = idx + num_metadata;
         let meta_data = (&lic[idx..end_meta]).to_vec();
@@ -28,13 +25,38 @@ impl Tree {
             meta_data,
             sub_trees,
         };
-        println!("{}: {:?}", end_meta, tree);
         (end_meta, tree)
+    }
+
+    fn sum_metadata(&self) -> usize {
+        self.meta_data.iter().sum::<usize>()
+            + self
+                .sub_trees
+                .iter()
+                .map(|t| t.sum_metadata())
+                .sum::<usize>()
+    }
+
+    fn cond_sum(&self) -> usize {
+        if self.sub_trees.is_empty() {
+            self.meta_data.iter().sum()
+        } else {
+            self.meta_data
+                .iter()
+                .filter_map(|x| {
+                    if *x > self.sub_trees.len() {
+                        None
+                    } else {
+                        Some(self.sub_trees[x - 1].cond_sum())
+                    }
+                })
+                .sum()
+        }
     }
 }
 
 fn main() {
-    let file = "input/8/test";
+    let file = "input/8/input";
     let mut file = File::open(file).expect("Opening file error");
     let mut contents = String::new();
     file.read_to_string(&mut contents)
@@ -44,8 +66,9 @@ fn main() {
         .split(' ')
         .filter_map(|x| x.parse::<usize>().ok())
         .collect();
-    println!("{:?}", data);
-    println!("{:?}", Tree::from_lic(0, &data));
+    let (_, tree) = Tree::from_lic(0, &data);
+    println!("Star 1: {}", tree.sum_metadata());
+    println!("Star 2: {}", tree.cond_sum());
 }
 
 #[cfg(test)]
