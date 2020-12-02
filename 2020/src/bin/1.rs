@@ -1,4 +1,3 @@
-use aoc_2020::read_csv;
 use itertools::Itertools;
 use std::fs::File;
 use std::io::prelude::*;
@@ -14,6 +13,7 @@ fn main() {
         .lines()
         .filter_map(|x| x.parse::<usize>().ok())
         .collect();
+
     let (f1, f2) = data
         .iter()
         .combinations_with_replacement(2)
@@ -21,6 +21,7 @@ fn main() {
         .find(|(f1, f2)| f1 + f2 == 2020)
         .expect("No prod == 2020");
     println!("Star 1: {}", f1 * f2);
+
     let (f1, f2, f3) = data
         .iter()
         .combinations_with_replacement(3)
@@ -28,11 +29,4 @@ fn main() {
         .find(|(f1, f2, f3)| f1 + f2 + f3 == 2020)
         .expect("No prod == 2020");
     println!("Star 2: {}", f1 * f2 * f3);
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    #[test]
-    fn test_() {}
 }
