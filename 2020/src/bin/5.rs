@@ -20,7 +20,7 @@ fn main() {
     let ids: HashSet<u32> = ids.collect();
     // Unlikely that the set difference is a perf impr cmp to simply iterating the range.
     // Cooler, though.
-    let all: HashSet<u32> = (2..max).collect();
+    let all: HashSet<u32> = (2..max - 1).collect();
     let my_id = all
         .difference(&ids)
         .find(|id| !ids.contains(id) && ids.contains(&(*id + 1)) && ids.contains(&(*id - 1)))
