@@ -1,6 +1,6 @@
 #![feature(test)]
 use regex::Regex;
-use std::collections::{HashMap, HashSet};
+use std::collections::HashSet;
 use std::fs::File;
 use std::io::prelude::*;
 
@@ -19,14 +19,14 @@ fn main() {
 fn modified_code_run(instrs: Vec<Instr>) -> i32 {
     let mut instrs = instrs;
     for idx in 0..instrs.len() - 1 {
-        let old_instr = instrs[idx].clone();
-        instrs[idx] = instrs[idx].jmp_nop_swap();
+        let orig_instr = instrs[idx];
+        instrs[idx] = orig_instr.clone().jmp_nop_swap();
         let res = run(&instrs, 0, 0, &mut HashSet::new());
         match res {
             Res::Term(val) => return val,
             Res::Inf(_) => {}
         }
-        instrs[idx] = old_instr;
+        instrs[idx] = orig_instr;
     }
     panic!("reached end");
 }
@@ -64,7 +64,7 @@ pub enum Res {
     Term(i32),
 }
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq, Copy)]
 pub enum Instr {
     Nop(i32),
     Acc(i32),
