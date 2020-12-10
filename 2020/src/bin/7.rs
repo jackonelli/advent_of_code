@@ -112,42 +112,42 @@ fn parse_graph(bag_rules: std::str::Lines) -> (Graph, RevIMap) {
     return (graph, rev_i_map);
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use test::Bencher;
-    extern crate test;
-    #[bench]
-    fn star_1(b: &mut Bencher) {
-        let file = "input/7/input";
-        let mut file = File::open(file).expect("Opening file error");
-        let mut contents = String::new();
-        file.read_to_string(&mut contents)
-            .expect("Read to string error");
-        let input = contents;
-        let (graph, rev_i_map) = parse_graph(input.lines());
-        b.iter(|| parents(&graph, rev_i_map.get("shiny gold").unwrap()).len())
-    }
-    #[bench]
-    fn star_2(b: &mut Bencher) {
-        let file = "input/7/input";
-        let mut file = File::open(file).expect("Opening file error");
-        let mut contents = String::new();
-        file.read_to_string(&mut contents)
-            .expect("Read to string error");
-        let input = contents;
-        let (graph, rev_i_map) = parse_graph(input.lines());
-        b.iter(|| count_bags(&graph, rev_i_map.get("shiny gold").unwrap()))
-    }
-
-    #[bench]
-    fn read_data(b: &mut Bencher) {
-        let file = "input/7/input";
-        let mut file = File::open(file).expect("Opening file error");
-        let mut contents = String::new();
-        file.read_to_string(&mut contents)
-            .expect("Read to string error");
-        let input = contents;
-        b.iter(|| parse_graph(input.lines()))
-    }
-}
+//#[cfg(test)]
+//mod tests {
+//    use super::*;
+//    use test::Bencher;
+//    extern crate test;
+//    #[bench]
+//    fn star_1(b: &mut Bencher) {
+//        let file = "input/7/input";
+//        let mut file = File::open(file).expect("Opening file error");
+//        let mut contents = String::new();
+//        file.read_to_string(&mut contents)
+//            .expect("Read to string error");
+//        let input = contents;
+//        let (graph, rev_i_map) = parse_graph(input.lines());
+//        b.iter(|| parents(&graph, rev_i_map.get("shiny gold").unwrap()).len())
+//    }
+//    #[bench]
+//    fn star_2(b: &mut Bencher) {
+//        let file = "input/7/input";
+//        let mut file = File::open(file).expect("Opening file error");
+//        let mut contents = String::new();
+//        file.read_to_string(&mut contents)
+//            .expect("Read to string error");
+//        let input = contents;
+//        let (graph, rev_i_map) = parse_graph(input.lines());
+//        b.iter(|| count_bags(&graph, rev_i_map.get("shiny gold").unwrap()))
+//    }
+//
+//    #[bench]
+//    fn read_data(b: &mut Bencher) {
+//        let file = "input/7/input";
+//        let mut file = File::open(file).expect("Opening file error");
+//        let mut contents = String::new();
+//        file.read_to_string(&mut contents)
+//            .expect("Read to string error");
+//        let input = contents;
+//        b.iter(|| parse_graph(input.lines()))
+//    }
+//}

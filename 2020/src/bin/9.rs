@@ -1,3 +1,4 @@
+#![feature(test)]
 use itertools::Itertools;
 use std::fs::File;
 use std::io::prelude::*;
@@ -84,5 +85,46 @@ fn _find_consec_sum(numbers: &[usize], window: usize, sum: usize) -> Option<(usi
             Some((*smallest, *largest))
         }
         None => None,
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use test::Bencher;
+    extern crate test;
+    #[bench]
+    fn caterpillar(b: &mut Bencher) {
+        let (window, file) = (25, "input/9/input");
+        // let (window, file) = (5, "input/9/test");
+        let mut file = File::open(file).expect("Opening file error");
+        let mut contents = String::new();
+        file.read_to_string(&mut contents)
+            .expect("Read to string error");
+        let data: Vec<usize> = contents
+            .trim()
+            .lines()
+            .filter_map(|x| x.parse::<usize>().ok())
+            .collect();
+
+        let inv = first_invalid(&data, window);
+        b.iter(|| star_2(&data, inv))
+    }
+    #[bench]
+    fn brute(b: &mut Bencher) {
+        let (window, file) = (25, "input/9/input");
+        // let (window, file) = (5, "input/9/test");
+        let mut file = File::open(file).expect("Opening file error");
+        let mut contents = String::new();
+        file.read_to_string(&mut contents)
+            .expect("Read to string error");
+        let data: Vec<usize> = contents
+            .trim()
+            .lines()
+            .filter_map(|x| x.parse::<usize>().ok())
+            .collect();
+
+        let inv = first_invalid(&data, window);
+        b.iter(|| _brute(&data, inv))
     }
 }
