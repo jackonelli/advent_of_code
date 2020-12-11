@@ -14,23 +14,23 @@ fn main() {
     let grid = data
         .map(|line| line.chars().collect::<Vec<char>>())
         .collect::<Grid>();
-    println!("Star 1: {}", run(grid.clone(), count_nb_adj));
-    println!("Star 2: {}", run(grid, count_nb_ray));
+    println!("Star 1: {}", run(grid.clone(), count_nb_adj, 4));
+    println!("Star 2: {}", run(grid, count_nb_ray, 5));
 }
 
-fn run(grid: Grid, nb_counter: fn(&Grid, usize, usize) -> usize) -> usize {
+fn run(grid: Grid, nb_counter: fn(&Grid, usize, usize) -> usize, occ_thresh: usize) -> usize {
     let mut grid = grid;
     let mut prev = 0;
     let mut curr = 1;
     while curr != prev {
-        grid = tick(&grid, nb_counter);
+        grid = tick(&grid, nb_counter, occ_thresh);
         prev = curr;
         curr = count_occ(&grid);
     }
     curr
 }
 
-fn tick(grid: &Grid, nb_counter: fn(&Grid, usize, usize) -> usize) -> Grid {
+fn tick(grid: &Grid, nb_counter: fn(&Grid, usize, usize) -> usize, occ_thresh: usize) -> Grid {
     let (height, width) = (grid.len(), grid[0].len());
     let mut new_grid = grid.clone();
     for y in 0..height {
@@ -45,7 +45,7 @@ fn tick(grid: &Grid, nb_counter: fn(&Grid, usize, usize) -> usize) -> Grid {
                 }
                 '#' => {
                     let occ = nb_counter(&grid, x, y);
-                    if occ >= 5 {
+                    if occ >= occ_thresh {
                         new_grid[y][x] = 'L';
                     }
                 }
