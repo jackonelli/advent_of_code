@@ -32,7 +32,7 @@ fn run(grid: Grid, nb_counter: fn(&Grid, usize, usize) -> usize, occ_thresh: usi
 
 fn tick(grid: &Grid, nb_counter: fn(&Grid, usize, usize) -> usize, occ_thresh: usize) -> Grid {
     let (height, width) = (grid.len(), grid[0].len());
-    let mut new_grid = grid.clone();
+    let mut new_grid = grid.to_vec();
     for y in 0..height {
         for x in 0..width {
             match grid[y][x] {
