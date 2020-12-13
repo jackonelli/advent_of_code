@@ -21,18 +21,9 @@ fn main() {
         .map(|x| x.unwrap())
         .collect();
     // println!("{:?}", freqs);
-    println!("Star 1: {}", star_1(ts, &freqs));
-    println!("Star 2: {}", star_2(raw));
-}
-
-fn star_1(ts: usize, freqs: &[usize]) -> usize {
-    let (min_f, diff) = freqs
-        .iter()
-        .map(|f| (f, ts / f))
-        .map(|(f, dts)| (f, f * (dts + 1) - ts))
-        .min_by_key(|(_, diff)| *diff)
-        .unwrap();
-    min_f * diff
+    //check_rems()
+    //println!("Star 1: {}", star_1(ts, &freqs));
+    //println!("Star 2: {}", star_2(raw));
 }
 fn star_2(raw: impl Iterator<Item = Result<usize, std::num::ParseIntError>>) -> usize {
     let mut rem_freqs: Vec<(usize, usize)> = raw
@@ -123,6 +114,16 @@ fn lcm(num_1: usize, num_2: usize) -> usize {
     (num_1 * num_2) / gcd
 }
 
+fn star_1(ts: usize, freqs: &[usize]) -> usize {
+    let (min_f, diff) = freqs
+        .iter()
+        .map(|f| (f, ts / f))
+        .map(|(f, dts)| (f, f * (dts + 1) - ts))
+        .min_by_key(|(_, diff)| *diff)
+        .unwrap();
+    min_f * diff
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
@@ -138,5 +139,57 @@ mod test {
         data.next().unwrap();
         let raw = data.next().unwrap().split(',').map(|dig| dig.parse());
         assert_eq!(1068781, star_2(raw));
+    }
+
+    #[test]
+    fn test_1() {
+        let file = "input/13/test_1";
+        let mut file = File::open(file).expect("Opening file error");
+        let mut contents = String::new();
+        file.read_to_string(&mut contents)
+            .expect("Read to string error");
+        let mut data = contents.trim().lines();
+        data.next().unwrap();
+        let raw = data.next().unwrap().split(',').map(|dig| dig.parse());
+        assert_eq!(754018, star_2(raw));
+    }
+
+    #[test]
+    fn test_2() {
+        let file = "input/13/test_2";
+        let mut file = File::open(file).expect("Opening file error");
+        let mut contents = String::new();
+        file.read_to_string(&mut contents)
+            .expect("Read to string error");
+        let mut data = contents.trim().lines();
+        data.next().unwrap();
+        let raw = data.next().unwrap().split(',').map(|dig| dig.parse());
+        assert_eq!(779210, star_2(raw));
+    }
+
+    #[test]
+    fn test_3() {
+        let file = "input/13/test_3";
+        let mut file = File::open(file).expect("Opening file error");
+        let mut contents = String::new();
+        file.read_to_string(&mut contents)
+            .expect("Read to string error");
+        let mut data = contents.trim().lines();
+        data.next().unwrap();
+        let raw = data.next().unwrap().split(',').map(|dig| dig.parse());
+        assert_eq!(1261476, star_2(raw));
+    }
+
+    #[test]
+    fn test_4() {
+        let file = "input/13/test_4";
+        let mut file = File::open(file).expect("Opening file error");
+        let mut contents = String::new();
+        file.read_to_string(&mut contents)
+            .expect("Read to string error");
+        let mut data = contents.trim().lines();
+        data.next().unwrap();
+        let raw = data.next().unwrap().split(',').map(|dig| dig.parse());
+        assert_eq!(1202161486, star_2(raw));
     }
 }
