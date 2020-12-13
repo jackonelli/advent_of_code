@@ -3,8 +3,6 @@
 use std::fs::File;
 use std::io::prelude::*;
 
-//749468541208439
-//219279645705120
 fn main() {
     let file = "input/13/input";
     let mut file = File::open(file).expect("Opening file error");
@@ -33,10 +31,6 @@ fn star_1(ts: usize, freqs: &[usize]) -> usize {
     min_f * diff
 }
 
-fn check_rems(ts: usize, rem: usize, freq: usize) -> bool {
-    (ts + rem) % freq == 0
-}
-
 fn star_2(raw: impl Iterator<Item = Result<usize, std::num::ParseIntError>>) -> usize {
     let mut rem_freqs: Vec<(usize, usize)> = raw
         .enumerate()
@@ -45,32 +39,42 @@ fn star_2(raw: impl Iterator<Item = Result<usize, std::num::ParseIntError>>) -> 
         .collect();
     rem_freqs.sort_unstable_by_key(|(_rem, f)| std::cmp::Reverse(*f));
 
-    let (rem, freq) = rem_freqs[0];
-    let (mut start, mut period_time) = find_period_time(1, 1, rem, freq);
-    for (rem, freq) in &rem_freqs[1..] {
-        let res = find_period_time(start, period_time, *rem, *freq);
-
-        start = res.0;
-        period_time = res.1;
-    }
+    let (start, _) = rem_freqs
+        .iter()
+        .fold((1, 1), |(start, period_time), (rem, freq)| {
+            let start = find_period_time(start, period_time, *rem, *freq);
+            // Freq's are all prime, but I mean they could be not prime.
+            let period_time = lcm(period_time, *freq);
+            (start, period_time)
+        });
     start
 }
 
-fn find_period_time(start: usize, period_time: usize, rem: usize, freq: usize) -> (usize, usize) {
-    let mut i = start;
-    let mut new_start = None;
-    loop {
-        if check_rems(i, rem, freq) {
-            match new_start {
-                Some(new_start) => {
-                    let new_period_time = i - new_start;
-                    return (new_start, new_period_time);
-                }
-                None => new_start = Some(i),
-            }
-        };
-        i += period_time;
+fn check_rems(ts: usize, rem: usize, freq: usize) -> bool {
+    (ts + rem) % freq == 0
+}
+
+fn find_period_time(start: usize, period_time: usize, rem: usize, freq: usize) -> usize {
+    (start..)
+        .step_by(period_time)
+        .find(|t| check_rems(*t, rem, freq))
+        .unwrap()
+}
+
+fn lcm(num_1: usize, num_2: usize) -> usize {
+    let (mut num, mut den) = if num_1 > num_2 {
+        (num_1, num_2)
+    } else {
+        (num_2, num_1)
+    };
+    let mut rem = num % den;
+    while rem != 0 {
+        num = den;
+        den = rem;
+        rem = num % den;
     }
+    let gcd = den;
+    (num_1 * num_2) / gcd
 }
 
 #[cfg(test)]
