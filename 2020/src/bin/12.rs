@@ -3,7 +3,6 @@
 use std::fs::File;
 use std::io::prelude::*;
 
-//Too high: 120387
 fn main() {
     let file = "input/12/input";
     let mut file = File::open(file).expect("Opening file error");
@@ -52,11 +51,14 @@ enum Instr {
 
 fn rotate(way: (i32, i32), deg: i32) -> (i32, i32) {
     let (w_x, w_y) = (way.0 as f64, way.1 as f64);
+    // Map 'deg' to first prin. branch
     let deg = deg % 360;
     let deg = if deg < 0 { 360 + deg } else { deg };
+
     let rad = deg as f64 * std::f64::consts::PI / 180.0;
     let cos = rad.cos();
     let sin = rad.sin();
+
     let rot_x = w_x * cos - w_y * sin;
     let rot_y = w_x * sin + w_y * cos;
     (rot_x.round() as i32, rot_y.round() as i32)
