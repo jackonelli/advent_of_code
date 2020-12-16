@@ -5,6 +5,8 @@ use std::io::prelude::*;
 use std::ops::RangeInclusive;
 
 type Constraints = HashMap<String, Vec<RangeInclusive<usize>>>;
+type Ticket = Vec<usize>;
+type TicketRef<'a> = &'a [usize];
 
 fn main() {
     let file = "input/16/input";
@@ -14,38 +16,32 @@ fn main() {
         .expect("Read to string error");
 
     let mut data = contents.trim().split("\n\n");
-    let constr = data.next().unwrap();
-    let constr = parse_constr(constr);
-    let your = data.next().unwrap();
-    let your = parse_your(your);
-    let nearby = data.next().unwrap();
-    let nearby = parse_nearby(nearby);
+    let constr = parse_constr(data.next().unwrap());
+    let your = parse_your(data.next().unwrap());
+    let nearby = parse_nearby(data.next().unwrap());
     println!("Star 1: {}", star_1(&constr, &nearby));
-    println!("Star 2: {}", star_2(constr, &nearby, &your));
+    println!("Star 2: {}", star_2(&constr, nearby, &your));
 }
 
-fn star_1(constraints: &Constraints, nearby: &[Vec<usize>]) -> usize {
+fn star_1(constraints: &Constraints, nearby: &[Ticket]) -> usize {
     nearby
         .iter()
-        .map(|ti| {
-            ti.iter()
-                .filter(|field| {
-                    !constraints
-                        .iter()
-                        .map(|(_, constr)| constr)
-                        .flatten()
-                        .any(|constr| constr.contains(field))
-                })
-                .cloned()
-                .collect::<Vec<usize>>()
+        .map(|ticket| {
+            ticket.iter().filter(|field| {
+                !constraints
+                    .iter()
+                    .map(|(_, constr)| constr)
+                    .flatten()
+                    .any(|constr| constr.contains(field))
+            })
         })
         .flatten()
         .sum()
 }
 
-fn star_2(constraints: Constraints, nearby: &[Vec<usize>], your: &[usize]) -> usize {
+fn star_2(constraints: &Constraints, nearby: Vec<Ticket>, your: TicketRef) -> usize {
     let valid_tickets = nearby
-        .iter()
+        .into_iter()
         .filter(|ti| {
             ti.iter().all(|field| {
                 constraints
@@ -55,28 +51,37 @@ fn star_2(constraints: Constraints, nearby: &[Vec<usize>], your: &[usize]) -> us
                     .any(|constr| constr.contains(field))
             })
         })
-        .cloned()
         .collect::<Vec<Vec<usize>>>();
 
-    let mut constraints = constraints.clone();
-    let mut your_keys = HashMap::new();
-    while !constraints.is_empty() {
-        for idx in 0..your.len() {
-            let key = find_constr(&constraints, &valid_tickets, idx);
-            if key.len() == 1 {
-                constraints.remove(&key[0]);
-                your_keys.insert(key[0].clone(), your[idx]);
-            }
-        }
-    }
-    your_keys
+    let mut idx_candidates: Vec<(usize, Vec<String>)> = (0..your.len())
+        .map(|idx| (idx, find_constr(&constraints, &valid_tickets, idx)))
+        .collect();
+    idx_candidates.sort_unstable_by_key(|(_idx, keys)| keys.len());
+
+    let key_idx_map =
+        idx_candidates
+            .iter()
+            .fold(HashMap::new(), |mut solved_keys, (idx, candidates)| {
+                let rem_keys: Vec<&String> = candidates
+                    .iter()
+                    .filter(|k| !solved_keys.contains_key(*k))
+                    .collect();
+                if rem_keys.len() == 1 {
+                    solved_keys.insert(rem_keys[0].clone(), *idx);
+                } else {
+                    panic!("Ambiguous key.")
+                }
+                solved_keys
+            });
+
+    key_idx_map
         .iter()
-        .filter(|(key, _val)| key.contains("departure"))
-        .map(|(_key, val)| *val)
+        .filter(|(key, _idx)| key.contains("departure"))
+        .map(|(_key, idx)| your[*idx])
         .product()
 }
 
-fn find_constr(constraints: &Constraints, valid_tickets: &[Vec<usize>], idx: usize) -> Vec<String> {
+fn find_constr(constraints: &Constraints, valid_tickets: &[Ticket], idx: usize) -> Vec<String> {
     let candidates: Vec<String> = constraints
         .iter()
         .filter(|(_, constr)| {
@@ -85,7 +90,7 @@ fn find_constr(constraints: &Constraints, valid_tickets: &[Vec<usize>], idx: usi
                 .map(|ti| ti[idx])
                 .all(|field| constr.iter().any(|c| c.contains(&field)))
         })
-        .map(|(key, c)| key.clone())
+        .map(|(key, _c)| key.clone())
         .collect();
     candidates
 }
@@ -105,7 +110,7 @@ fn parse_constr(constr: &str) -> Constraints {
     parsed_constr
 }
 
-fn parse_nearby(nearby: &str) -> Vec<Vec<usize>> {
+fn parse_nearby(nearby: &str) -> Vec<Ticket> {
     let mut lines = nearby.trim().lines();
     lines.next();
     let mut res: Vec<Vec<usize>> = Vec::new();
@@ -119,7 +124,7 @@ fn parse_nearby(nearby: &str) -> Vec<Vec<usize>> {
     res
 }
 
-fn parse_your(your: &str) -> Vec<usize> {
+fn parse_your(your: &str) -> Ticket {
     let mut lines = your.trim().lines();
     lines.next();
     lines
