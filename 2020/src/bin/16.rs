@@ -62,12 +62,12 @@ fn star_2(constraints: &Constraints, nearby: Vec<Ticket>, your: TicketRef) -> us
         idx_candidates
             .iter()
             .fold(HashMap::new(), |mut solved_keys, (idx, candidates)| {
-                let rem_keys: Vec<&String> = candidates
-                    .iter()
-                    .filter(|k| !solved_keys.contains_key(*k))
-                    .collect();
-                if rem_keys.len() == 1 {
-                    solved_keys.insert(rem_keys[0].clone(), *idx);
+                let mut rem_keys = candidates.iter().filter(|k| !solved_keys.contains_key(*k));
+                let key = rem_keys
+                    .next()
+                    .unwrap_or_else(|| panic!("No candidate for idx: {}", idx));
+                if rem_keys.count() == 0 {
+                    solved_keys.insert(key, *idx);
                 } else {
                     panic!("Ambiguous key.")
                 }
