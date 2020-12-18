@@ -1,3 +1,4 @@
+#![feature(test)]
 use std::fs::File;
 use std::io::prelude::*;
 
@@ -19,7 +20,7 @@ fn main() {
     let state = init_state_3d(&first_slice, ticks);
     let state = run_3d(state, ticks);
     println!("Star 1: {}", count_occ_3d(&state));
-    let state = init_4d_state(&first_slice, ticks);
+    let state = init_state_4d(&first_slice, ticks);
     let state = run_4d(state, ticks);
     println!("Star 2: {}", count_occ_4d(&state));
 }
@@ -113,7 +114,7 @@ fn count_occ_4d(state: &State4d) -> usize {
     4 * tmp - extra_counted_w - extra_counted_z
 }
 
-fn init_4d_state(first_slice: &Slice, ticks: usize) -> State4d {
+fn init_state_4d(first_slice: &Slice, ticks: usize) -> State4d {
     let height = first_slice.len();
     let width = first_slice[0].len();
     let mut state =
@@ -232,5 +233,44 @@ fn loc_slice_idx(z: i32) -> usize {
         -z as usize
     } else {
         z as usize
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use test::Bencher;
+    extern crate test;
+    #[bench]
+    fn day_17_star_1(b: &mut Bencher) {
+        let file = "input/17/input";
+        let mut file = File::open(file).expect("Opening file error");
+        let mut contents = String::new();
+        file.read_to_string(&mut contents)
+            .expect("Read to string error");
+        let data = contents.trim().lines();
+        let first_slice = data
+            .map(|line| line.chars().collect::<Vec<char>>())
+            .collect::<Slice>();
+        let ticks = 6;
+        let state = init_state_3d(&first_slice, ticks);
+        let state = run_3d(state, ticks);
+        b.iter(|| run_3d(state.clone(), ticks))
+    }
+    #[bench]
+    fn day_17_star_2(b: &mut Bencher) {
+        let file = "input/17/input";
+        let mut file = File::open(file).expect("Opening file error");
+        let mut contents = String::new();
+        file.read_to_string(&mut contents)
+            .expect("Read to string error");
+        let data = contents.trim().lines();
+        let first_slice = data
+            .map(|line| line.chars().collect::<Vec<char>>())
+            .collect::<Slice>();
+        let ticks = 6;
+        let state = init_state_4d(&first_slice, ticks);
+        let state = run_4d(state, ticks);
+        b.iter(|| run_4d(state.clone(), ticks))
     }
 }
