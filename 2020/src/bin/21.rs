@@ -11,7 +11,7 @@ fn main() {
 
     let list = parse_lines(&contents);
     let dict = gen_allergen_dict(&list);
-    println!("Star 1: {}", star_1(&list, &dict));
+    println!("Star 1:  {}", star_1(&list, &dict));
     println!("Star 2: '{}'", star_2(&dict));
 }
 
@@ -47,12 +47,18 @@ fn gen_allergen_dict(list: &[(HashSet<String>, Vec<String>)]) -> HashMap<String,
         });
 
     let mut sort_dict: Vec<(String, HashSet<String>)> = dict
-        .iter()
-        .map(|(all, ingreds)| (all.clone(), ingreds.clone()))
+        .into_iter()
+        .map(|(all, ingreds)| (all, ingreds))
         .collect();
 
     let mut allergen_dict = HashMap::new();
-    while !sort_dict.is_empty() {
+    // The dict now has pairs:  (all: {ingreds}).
+    // Hoping that the input is s.t. that there exists at least one entry s.t. |{ingreds}| = 1.
+    // Sorting on set size will bring this entry to the front.
+    // Remove it to get the first unique match. Remove all instances of this match in all entries.
+    // Hope that the resulting dict again has a least one entry with a singleton set.
+    // Repeat.
+    for _ in 0..sort_dict.len() {
         sort_dict.sort_by_key(|(_all, ingreds)| ingreds.len());
         let (all, candidates) = sort_dict.remove(0);
         assert!(candidates.len() == 1);
@@ -87,12 +93,8 @@ fn star_2(allergen_dict: &HashMap<String, String>) -> String {
     let mut dict: Vec<(String, String)> = allergen_dict.clone().into_iter().collect();
     dict.sort_by_key(|(all, _ingred)| all.clone());
 
-    let mut key_string = dict.iter().fold(String::new(), |mut acc, (_all, ingred)| {
-        acc.push_str(ingred);
-        acc.push(',');
-        acc
-    });
-    // Remove trailing comma
-    key_string.pop();
-    key_string
+    dict.into_iter()
+        .map(|(_all, ingred)| ingred)
+        .collect::<Vec<String>>()
+        .join(",")
 }
