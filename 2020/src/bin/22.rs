@@ -26,8 +26,14 @@ enum Winner {
 impl Winner {
     fn score(&self) -> usize {
         let winning_deck = match self {
-            Winner::Player1(deck) => deck,
-            Winner::Player2(deck) => deck,
+            Winner::Player1(deck) => {
+                print!("Player 1: ");
+                deck
+            }
+            Winner::Player2(deck) => {
+                print!("Player 2: ");
+                deck
+            }
         };
         winning_deck
             .iter()
@@ -39,16 +45,13 @@ impl Winner {
 }
 
 fn play_game(mut player_1: Deck, mut player_2: Deck) -> Winner {
-    let mut previous_decks_1 = HashSet::new();
-    let mut previous_decks_2 = HashSet::new();
+    let mut previous_decks = HashSet::new();
     while !player_1.is_empty() && !player_2.is_empty() {
-        let hash_1 = hash(&player_1);
-        let hash_2 = hash(&player_2);
-        if previous_decks_1.contains(&hash_1) || previous_decks_2.contains(&hash_2) {
+        let hash = hash(&player_1, &player_2);
+        if previous_decks.contains(&hash) {
             return Winner::Player1(player_1);
         }
-        previous_decks_1.insert(hash_1);
-        previous_decks_2.insert(hash_2);
+        previous_decks.insert(hash);
 
         let card_1 = player_1.pop_front().unwrap();
         let card_2 = player_2.pop_front().unwrap();
@@ -74,9 +77,10 @@ fn play_game(mut player_1: Deck, mut player_2: Deck) -> Winner {
     winner(player_1, player_2)
 }
 
-fn hash(d1: &VecDeque<usize>) -> u64 {
+fn hash(player_1: &Deck, player_2: &Deck) -> u64 {
     let mut hasher = DefaultHasher::new();
-    d1.hash(&mut hasher);
+    player_1.hash(&mut hasher);
+    player_2.hash(&mut hasher);
     hasher.finish()
 }
 
@@ -103,10 +107,10 @@ fn star_1(player_1: Deck, player_2: Deck) -> usize {
 }
 
 fn winner(player_1: Deck, player_2: Deck) -> Winner {
-    if player_1.is_empty() {
-        Winner::Player2(player_2)
-    } else {
+    if !player_1.is_empty() {
         Winner::Player1(player_1)
+    } else {
+        Winner::Player2(player_2)
     }
 }
 
@@ -134,6 +138,7 @@ mod tests {
     use super::*;
     use test::Bencher;
     extern crate test;
+
     #[bench]
     fn day_22_star_1(b: &mut Bencher) {
         let file = "input/22/input";
