@@ -12,7 +12,6 @@ type Pat = Vec<char>;
 
 fn main() {
     let file = "input/20/input";
-    //let file = "input/19/input";
     let mut file = File::open(file).expect("Opening file error");
     let mut contents = String::new();
     file.read_to_string(&mut contents)
@@ -36,7 +35,6 @@ fn main() {
     };
     let trimmed_puzzle = remove_borders(puzzle, tiles[0].size());
     let highlight = monster_count(trimmed_puzzle, monster_pat);
-    //print_puzzle(&highlight);
     println!(
         "Star 2: {}",
         highlight.iter().flatten().filter(|c| **c == '#').count()
@@ -107,7 +105,6 @@ fn comp_patch(puzzle: &[Pat], monster: &Monster, row: usize, col: usize) -> bool
         for j in 0..width {
             let c_p = puzzle[row + i][col + j];
             let c_m = monster.pat[i][j];
-            //print!("{}", c_m);
             if c_m == '#' && c_p == '.' {
                 return false;
             }
@@ -116,7 +113,7 @@ fn comp_patch(puzzle: &[Pat], monster: &Monster, row: usize, col: usize) -> bool
     true
 }
 
-// TODO: arb. starting piece.
+// Buggy. Can't align any corner tile to top left.
 fn solve_puzzle(tiles: &[Tile]) -> Vec<Pat> {
     let num_tiles = (tiles.len() as f32).sqrt() as usize;
     let mut puzzle = init_puzzle(&tiles);
